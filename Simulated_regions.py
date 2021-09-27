@@ -23,8 +23,6 @@ import nibabel as nib
 from dipy.align.imwarp import SymmetricDiffeomorphicRegistration
 from dipy.align.metrics import SSDMetric
 from dipy.viz import regtools
-import sys
-sys.path.append(r'D:\TDCNN\\')
 import BrainSOM
 
 
@@ -47,8 +45,8 @@ alexnet.eval()
 
 
 threshold_cohend = 0.5
-HCP_data = nib.load('D:\TDCNN\HCP\HCP_S1200_997_tfMRI_ALLTASKS_level2_cohensd_hp200_s4_MSMAll.dscalar.nii')
-mask = nib.load('D:\TDCNN\HCP\MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
+HCP_data = nib.load('./HCP_S1200_997_tfMRI_ALLTASKS_level2_cohensd_hp200_s4_MSMAll.dscalar.nii')
+mask = nib.load('./MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
 vtc_mask = np.where((mask==7)|(mask==18)|(mask==22)|(mask==127)|(mask==136)|(mask==138)|(mask==154)|(mask==163)|(mask==7+180)|(mask==18+180)|(mask==22+180)|(mask==127+180)|(mask==136+180)|(mask==138+180)|(mask==154+180)|(mask==163+180))[0]
 hcp_vtc = np.zeros(91282)
 hcp_vtc[vtc_mask] = 1
@@ -58,22 +56,6 @@ R_hcp_vtc[R_vtc_mask] = 1
 L_vtc_mask = np.where((mask==7+180)|(mask==18+180)|(mask==22+180)|(mask==127+180)|(mask==136+180)|(mask==138+180)|(mask==154+180)|(mask==163+180))[0]
 L_hcp_vtc = np.zeros(91282)
 L_hcp_vtc[L_vtc_mask] = 1
-
-hcp_face = HCP_data.dataobj[19,:]
-hcp_face = hcp_face * hcp_vtc
-hcp_face = np.where(hcp_face>=threshold_cohend, 1, 0)
-
-hcp_place = HCP_data.dataobj[20,:]
-hcp_place = hcp_place * hcp_vtc
-hcp_place = np.where(hcp_place>=threshold_cohend, 1, 0)
-
-hcp_limb = HCP_data.dataobj[18,:]
-hcp_limb = hcp_limb * hcp_vtc
-hcp_limb = np.where(hcp_limb>=threshold_cohend, 1, 0)
-
-hcp_object = HCP_data.dataobj[21,:]
-hcp_object = hcp_object * hcp_vtc
-hcp_object = np.where(hcp_object>=threshold_cohend, 1, 0)
 
 
 
@@ -98,9 +80,9 @@ Dict_32kR_to_hcp = {v:k for k,v in Dict_hcp_to_32kR.items()}
         
 def get_Lvtc_position(plot=False):
     # geometry information
-    geometry = nib.load('D:\TDCNN\HCP\S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
+    geometry = nib.load('./S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
     # data
-    mask = nib.load('D:\TDCNN\HCP\MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
+    mask = nib.load('./MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
     L_vtc_mask = np.where((mask==7+180)|(mask==18+180)|(mask==22+180)|(mask==127+180)|(mask==136+180)|(mask==138+180)|(mask==154+180)|(mask==163+180))[0]
     L_hcp_vtc = np.zeros(91282)
     L_hcp_vtc[L_vtc_mask] = 1
@@ -119,9 +101,9 @@ def get_Lvtc_position(plot=False):
 
 def get_Rvtc_position(plot=False):
     # geometry information
-    geometry = nib.load('D:\TDCNN\HCP\S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
+    geometry = nib.load('./S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
     # data
-    mask = nib.load('D:\TDCNN\HCP\MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
+    mask = nib.load('./MMP_mpmLR32k.dlabel.nii').dataobj[0][:]
     R_vtc_mask = np.where((mask==7)|(mask==18)|(mask==22)|(mask==127)|(mask==136)|(mask==138)|(mask==154)|(mask==163))[0]
     R_hcp_vtc = np.zeros(91282)
     R_hcp_vtc[R_vtc_mask] = 1
@@ -140,7 +122,7 @@ def get_Rvtc_position(plot=False):
 
 def get_L_hcp_space_mask(hcp_index, threshold, plot=False):
     # geometry information
-    geometry = nib.load('D:\TDCNN\HCP\S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
+    geometry = nib.load('./S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
     # data
     hcp_data = HCP_data.dataobj[hcp_index,:]
     hcp_data = hcp_data * L_hcp_vtc
@@ -169,7 +151,7 @@ def get_L_hcp_space_mask(hcp_index, threshold, plot=False):
 
 def get_R_hcp_space_mask(hcp_index, threshold, plot=False):
     # geometry information
-    geometry = nib.load('D:\TDCNN\HCP\S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
+    geometry = nib.load('./S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
     # data
     hcp_data = HCP_data.dataobj[hcp_index,:]
     hcp_data = hcp_data * R_hcp_vtc
@@ -240,15 +222,12 @@ def Make_mapping_vtc2sheet(position, shift, rotation_theta, hemisphere):
     moving = make_moving_map(position, shift, rotation_theta, hemisphere)
     static = np.zeros((340,340))  
     static[70:270,70:270] = 1
-    regtools.overlay_images(static, moving, 'Static', 'Overlay', 'Moving')    
     dim = static.ndim
     metric = SSDMetric(dim)    
     level_iters = [500, 200, 100, 50, 10]
     sdr = SymmetricDiffeomorphicRegistration(metric, level_iters)
     mapping = sdr.optimize(static, moving)
-    regtools.plot_2d_diffeomorphic_map(mapping)   
     warped_moving = mapping.transform(moving, 'linear')
-    regtools.overlay_images(static, warped_moving, 'Static', 'Overlay', 'Warped moving')
     return mapping
 
 def Mapping_area2sheet(mapping, area_position, shift, rotation_theta, hemisphere):
@@ -265,48 +244,6 @@ def Mapping_som_area_2_vtc(mapping, som_area):
     moving[70:270,70:270] = som_area
     vtc_area = mapping.transform_inverse(moving)    
     return vtc_area
-
-def drive_area_2_vtc_axis(warped_area, shift, inverse_rotation_theta, hemisphere):
-    if hemisphere=='left':
-        position = get_Lvtc_position(plot=False)
-        geometry = nib.load('D:\TDCNN\HCP\S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
-        Dict_32k_to_hcp = Dict_32kL_to_hcp
-    if hemisphere=='right':
-        position = get_Rvtc_position(plot=False)
-        geometry = nib.load('D:\TDCNN\HCP\S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
-        Dict_32k_to_hcp = Dict_32kR_to_hcp
-    # shift
-    warped_area_temp = np.zeros((340,340))
-    warped_area_temp[np.where(warped_area!=0)[0]-shift[0], np.where(warped_area!=0)[1]-shift[1]] = warped_area[np.where(warped_area!=0)]
-    warped_area = warped_area_temp
-    # rotation
-    warped_area = transform.rotate(warped_area, inverse_rotation_theta)
-    vtc_round_position = fill_hcp_map(position)
-    Xs = np.float32(np.where(warped_area!=0)[0])
-    Ys = np.float32(np.where(warped_area!=0)[1])
-    Values = warped_area[np.where(warped_area!=0)]
-    # shift to fmri axis
-    Xs += vtc_round_position[:,0].min()-170
-    Ys += vtc_round_position[:,1].min()-160
-    # units position and index in 32K space
-    units_position = []
-    units_index_in_32K = []
-    for unit in zip(Xs,Ys):
-        temp = np.abs(position-unit)
-        t = temp[:,0] + temp[:,1]
-        units_position.append(position[t.argmin(),:])
-        units_index_in_32K.append(np.where(geometry[:,[0,1]]==position[t.argmin(),:])[0][0])
-    units_position = np.array(units_position)  
-    units_index_in_32K = np.array(units_index_in_32K)
-    units_index_in_hcp = []
-    for i in units_index_in_32K:
-        units_index_in_hcp.append(Dict_32k_to_hcp[i])
-    units_in_hcp = np.zeros(91282)
-    if hemisphere=='left':
-        units_in_hcp[units_index_in_hcp] = Values
-    if hemisphere=='right':
-        units_in_hcp[[x+29696 for x in units_index_in_hcp]] = Values
-    return units_in_hcp
 
 def save_warped_area_as_gii(units_in_hcp, out_dir):
     """"out_dir: .dtseries.nii"""
@@ -366,9 +303,9 @@ def Mapping_som_structure_constrain_2_vtc_map(mapping, som, sigma, shift, rotati
    
 def plot_vertex_distance(vertex_dir, hemisphere):
     if hemisphere=='left':
-        geometry = nib.load('D:\TDCNN\HCP\S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
+        geometry = nib.load('./S1200.L.flat.32k_fs_LR.surf.gii').darrays[0].data
     if hemisphere=='right':
-        geometry = nib.load('D:\TDCNN\HCP\S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
+        geometry = nib.load('./S1200.R.flat.32k_fs_LR.surf.gii').darrays[0].data
     hcp_data = nib.load(vertex_dir).darrays[0].data
     hcp_data = np.where(hcp_data>0)[0]
     plt.figure()
@@ -430,7 +367,7 @@ pca = PCA()
 pca.fit(Data)
 
 som = BrainSOM.VTCSOM(200, 200, 4, sigma=6.2, learning_rate=1, neighborhood_function='gaussian')
-som._weights = np.load('D:\\TDCNN\\Results\\Alexnet_fc8_SOM\\SOM_norm(200x200)_pca4_Sigma_200000step\som_sigma_6.2.npy')
+som._weights = np.load('./som_sigma_6.2.npy')
 Response_face,Response_place,Response_body,Response_object = Functional_map_pca(som, pca, pca_index=[0,1,2,3])
 Contrast_respense = [np.vstack((Response_place,Response_body,Response_object)).mean(axis=0),
                      np.vstack((Response_face,Response_body,Response_object)).mean(axis=0),
@@ -452,5 +389,14 @@ warped_limb = Mapping_som_area_2_vtc(mapping_Left, limb_mask[1])
 warped_object = Mapping_som_area_2_vtc(mapping_Left, object_mask[1])
 
 
+
+plt.figure()
+plt.imshow(warped_face);plt.axis('off')
+plt.figure()
+plt.imshow(warped_place);plt.axis('off')
+plt.figure()
+plt.imshow(warped_limb);plt.axis('off')
+plt.figure()
+plt.imshow(warped_object);plt.axis('off')
 
 
