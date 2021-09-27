@@ -4,8 +4,6 @@ VTC-SOM model.py: Training model & Obtain Figure2.A
 
 Simulated_regions.py: Figure2.B
 
-
-
 NOTE: 
 
 
