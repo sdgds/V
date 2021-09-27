@@ -5,6 +5,7 @@ VTC-SOM model.py: Training model & Obtain Figure2.A
 Simulated_regions.py: Figure2.B
 
 
+
 NOTE: 1.Make sure the files in the release are in the same folder as the py files
 
       2.Run the program in the folder where the py file is located
